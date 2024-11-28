@@ -108,7 +108,7 @@ States must be created in a local scope.
 
 States can have different kinds of actions assigned to them.
 - **enter_action**: Is called once when the state is entered.
-- **do_action**: Is called everytime the state is active and `SM_step()` is called.
+- **do_action**: Is called when the state is active and `SM_step()` is called, **but not when a transition is triggered**.
 - **exit_action**: Is called once when the state is entered.
 
 These actions can be defined as follows.
