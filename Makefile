@@ -1,10 +1,11 @@
 
 CFLAGS= -std=c99 -ggdb
+LDFLAGS= -I.
 
 all: build
-	cc -o build/gol examples/game_of_life.c
-	cc -o build/lexer examples/lexer.c
-	cc -o build/simple_sm examples/simple_sm.c
+	cc ${CFLAGS} -o build/gol examples/game_of_life.c ${LDFLAGS}
+	cc ${CFLAGS} -o build/lexer examples/lexer.c ${LDFLAGS}
+	cc ${CFLAGS} -o build/simple_sm examples/simple_sm.c ${LDFLAGS}
 
 build:
 	mkdir build

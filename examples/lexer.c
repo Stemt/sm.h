@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 #define SM_IMPLEMENTATION
-#include "../sm.h"
+#include "sm.h"
 
 typedef enum{
   TokenType_UNKNOWN,

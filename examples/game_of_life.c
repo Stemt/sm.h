@@ -1,6 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
-#include "../sm.h"
+#include "sm.h"
 
 #define SIZE 5
 

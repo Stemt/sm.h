@@ -1,7 +1,7 @@
 
 #define SM_IMPLEMENTATION
 #define SM_TRACE
-#include "../sm.h"
+#include "sm.h"
 
 void A_do_action(void* ctx){
   int* value = ctx;
