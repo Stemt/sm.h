@@ -1,6 +1,6 @@
 # sm.h
 
-A simple single header library for creating statically allocated state machines.
+A single header library for simply creating statically allocated state machines.
 
 ## Usage
 
@@ -9,7 +9,7 @@ A simple single header library for creating statically allocated state machines.
 ```c
 #define SM_IMPLEMENTATION
 #define SM_TRACE
-#include "../sm.h"
+#include "sm.h"
 
 void A_do_action(void* ctx){
   int* value = ctx;
@@ -42,6 +42,7 @@ bool B_to_final_trigger(void* ctx, void* event){
 }
 
 int main(void){
+
   SM_def(sm);
 
   SM_State_create(A);
@@ -99,12 +100,16 @@ SM_def(example_state_machine);
 States must be created in a local scope.
 
 ```c
+... {
+    ...
     SM_State_create(example_state);
+    ...
+}
 ```
 
 States can have different kinds of actions assigned to them.
 - **enter_action**: Is called once when the state is entered.
-- **do_action**: Is called everytime the state is active and `SM_step()` is called.
+- **do_action**: Is called when the state is active and `SM_step()` is called, **but not when a transition is triggered**.
 - **exit_action**: Is called once when the state is entered.
 
 These actions can be defined as follows.
@@ -187,28 +192,44 @@ Running a state machine requires a `SM_Context`.
 It can also be initialized with a `void*` pointer to your own data, which is passed to all guards, triggers and actions when those are called.
 
 ```c
+... {
+    ...
     SM_Context context;
     int custom_data = 0;
     SM_Context_init(&context, &custom_data);
+    ...
+}
 ```
 
 Using the `SM_step()` function, the state machine can be made to perform one transition with it's associated actions or one do action.
 
 ```c
+... {
+    ...
     SM_step(example_state_machine, &context);
+    ...
+}
 ```
 
 For convenience, `SM_run()` can be called to keep calling `SM_step()` automatically until the state machine halts.
 
 ```c
+... {
+    ...
     SM_run(example_state_machine, &context);
+    ...
+}
 ```
 
 `SM_notify()` can trigger triggers with the associated actions.
 
 ```c
+... {
+    ...
     int example_event = 42;
     SM_notify(example_state_machine, &context, &example_event);
+    ...
+}
 ```
 
 
