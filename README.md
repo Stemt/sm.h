@@ -42,6 +42,7 @@ bool B_to_final_trigger(void* ctx, void* event){
 }
 
 int main(void){
+
   SM_def(sm);
 
   SM_State_create(A);
