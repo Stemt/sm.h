@@ -9,7 +9,7 @@ A single header library for simply creating statically allocated state machines.
 ```c
 #define SM_IMPLEMENTATION
 #define SM_TRACE
-#include "../sm.h"
+#include "sm.h"
 
 void A_do_action(void* ctx){
   int* value = ctx;
