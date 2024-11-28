@@ -171,10 +171,10 @@ int main(void){
 
   // cell states 
   SM_State_create(alive);
-  SM_State_set_entry_action(alive, Cell_state_alive_enter);
+  SM_State_set_enter_action(alive, Cell_state_alive_enter);
 
   SM_State_create(dead);
-  SM_State_set_entry_action(dead, Cell_state_dead_enter);
+  SM_State_set_enter_action(dead, Cell_state_dead_enter);
 
   // initial transition with guard if cell is alive
   SM_Transition_create(sm, initial_to_alive, SM_INITIAL_STATE, alive);

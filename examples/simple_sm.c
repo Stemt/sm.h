@@ -8,10 +8,18 @@ void A_do_action(void* ctx){
   (*value)+=1;
 }
 
+void A_exit_action(void* ctx){
+  printf("exiting state A");
+}
+
 bool A_to_B_guard(void* ctx){
   int* value = ctx;
   fprintf(stderr,"A_to_B_guard: value = %d\n",*value);
   return *value > 4;
+}
+
+void B_enter_action(void* ctx){
+  printf("exiting state B\n");
 }
 
 void B_do_action(void* ctx){
@@ -19,10 +27,10 @@ void B_do_action(void* ctx){
   (*value)+=2;
 }
 
-bool B_to_final_guard(void* ctx){
-  int* value = ctx;
-  fprintf(stderr, "B_to_A_guard: value = %d\n", *value);
-  return *value > 10;
+bool B_to_final_trigger(void* ctx, void* event){
+  int* event_value = event;
+  printf("B_to_final_trigger: event_value = %d\n", *event_value);
+  return *event_value > 10;
 }
 
 int main(void){
@@ -40,13 +48,18 @@ int main(void){
   SM_Transition_set_guard(A_to_B, A_to_B_guard);
 
   SM_Transition_create(sm, B_to_final, B, SM_FINAL_STATE);
-  SM_Transition_set_guard(B_to_final, B_to_final_guard);
+  SM_Transition_set_trigger(B_to_final, B_to_final_trigger);
 
   int value = 0;
+  int event_value = 0;
   SM_Context context;
   SM_Context_init(&context, &value);
 
-  SM_run(sm, &context);
+  while(!SM_Context_is_halted(&context)){
+    SM_step(sm, &context);
+    SM_notify(sm, &context, &event_value);
+    event_value++;
+  }
 
   return 0;
 }

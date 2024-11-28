@@ -11,7 +11,7 @@
 typedef void (*ActionCallback)(void* user_context);
 
 typedef struct{
-  ActionCallback entry_action;
+  ActionCallback enter_action;
   ActionCallback do_action;
   ActionCallback exit_action;
   const char* trace_name;
@@ -27,7 +27,7 @@ typedef struct{
   SM_State_init(state)
 
 void SM_State_init(SM_State* self);
-void SM_State_set_entry_action(SM_State* self, ActionCallback action);
+void SM_State_set_enter_action(SM_State* self, ActionCallback action);
 void SM_State_set_do_action(SM_State* self, ActionCallback action);
 void SM_State_set_exit_action(SM_State* self, ActionCallback action);
 void SM_State_enter(SM_State* self, void* user_context);
@@ -113,8 +113,8 @@ const char* SM_State_get_trace_name(SM_State* self){
   return "initial/final";
 }
 
-void SM_State_set_entry_action(SM_State* self, ActionCallback action){
-  self->entry_action = action;
+void SM_State_set_enter_action(SM_State* self, ActionCallback action){
+  self->enter_action = action;
 }
 
 void SM_State_set_do_action(SM_State* self, ActionCallback action){
@@ -126,7 +126,7 @@ void SM_State_set_exit_action(SM_State* self, ActionCallback action){
 }
 
 void SM_State_enter(SM_State* self, void* user_context){
-  if(self && self->entry_action) self->entry_action(user_context); 
+  if(self && self->enter_action) self->enter_action(user_context); 
 }
 
 void SM_State_do(SM_State* self, void* user_context){
@@ -238,7 +238,7 @@ void _SM_init(SM* self){
 
 void SM_transition(SM* self, SM_Transition* transition, SM_Context* context){
 #ifdef SM_TRACE
-  fprintf(stderr,"SM_TRACE: transition triggered: '%s' -> '%s\n'", 
+  fprintf(stderr,"SM_TRACE: transition triggered: '%s' -> '%s'\n", 
       SM_State_get_trace_name(transition->source),
       SM_State_get_trace_name(transition->target));
 #endif
