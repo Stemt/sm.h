@@ -99,7 +99,11 @@ SM_def(example_state_machine);
 States must be created in a local scope.
 
 ```c
+... {
+    ...
     SM_State_create(example_state);
+    ...
+}
 ```
 
 States can have different kinds of actions assigned to them.
