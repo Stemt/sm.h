@@ -1,6 +1,6 @@
 # sm.h
 
-A simple single header library for creating statically allocated state machines.
+A single header library for simply creating statically allocated state machines.
 
 ## Usage
 
