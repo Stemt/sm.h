@@ -49,12 +49,11 @@ typedef struct{
 
 #define SM_Transition_create(sm, transition, source_state, target_state)\
   static SM_Transition (_##transition) = {0};\
-  static SM_Transition* const (transition) = &(_##transition);\
+  SM_Transition* const (transition) = &(_##transition);\
   assert((transition)->init == false && "attempted redefinition of transition: "#transition);\
   SM_Transition_init((transition), (source_state), (target_state));\
   SM_add_transition((sm), (transition))
 
-void SM_Transition_free(SM_Transition* self);
 bool SM_Transition_has_trigger_or_guard(SM_Transition* self);
 bool SM_Transition_check_guard(SM_Transition* self, void* user_context);
 bool SM_Transition_check_trigger(SM_Transition* self, void* user_context, void* event);
