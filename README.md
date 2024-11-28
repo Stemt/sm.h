@@ -191,28 +191,44 @@ Running a state machine requires a `SM_Context`.
 It can also be initialized with a `void*` pointer to your own data, which is passed to all guards, triggers and actions when those are called.
 
 ```c
+... {
+    ...
     SM_Context context;
     int custom_data = 0;
     SM_Context_init(&context, &custom_data);
+    ...
+}
 ```
 
 Using the `SM_step()` function, the state machine can be made to perform one transition with it's associated actions or one do action.
 
 ```c
+... {
+    ...
     SM_step(example_state_machine, &context);
+    ...
+}
 ```
 
 For convenience, `SM_run()` can be called to keep calling `SM_step()` automatically until the state machine halts.
 
 ```c
+... {
+    ...
     SM_run(example_state_machine, &context);
+    ...
+}
 ```
 
 `SM_notify()` can trigger triggers with the associated actions.
 
 ```c
+... {
+    ...
     int example_event = 42;
     SM_notify(example_state_machine, &context, &example_event);
+    ...
+}
 ```
 
 
