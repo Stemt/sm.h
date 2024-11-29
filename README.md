@@ -369,4 +369,46 @@ classDiagram
   A_to_C --> A : source
 ```
 
+## Why Does it Work This Way?
+
+A state machine only describes behavior and does not itself, have to be statefull.
+Therefore the behavior can be described using statically allocated nodes as described above.
+This is beneficial for memory management as you don't have to worry about allocating space for the the nodes themselves.
+The actual state of the machine can then be maintained in a seperate structe which is what `SM_Context` is for.
+This can be allocated any way that the user sees fit.
+For example if you're entire application only requires one instance of a state machine the context could also be allocated statically.
+
+But if you wan't to be able to have multiple instances you'd want to allocate it on the stack or heap.
+For a good example of running multiple instances of a state machine see [examples/game_of_life.c](./examples/game_of_life.c);
+
+## Examples
+
+To build the example you need to have gnu-make installed and a C compiler that supports atleast C99.
+
+Then to build simply run:
+```
+make
+```
+
+### simple_sm.c
+
+Same as the quick example above.
+
+### game_of_life.c
+
+Implements [Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) by John Conway using a simple state machine for each cell of the grid.
+The size of the grid can be modified by changing the `SIZE` define and the amount of steps simulated by setting the `int steps` in the main function.
+
+This example shows how you can use multiple `SM_Context`s to run multiple instances of a statemachine.
+
+### lexer.c
+
+Implements a rudimentary lexer I have previously used to parse CSV files.
+
+
+
+
+
+
+
 
