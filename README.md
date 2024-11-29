@@ -378,12 +378,13 @@ classDiagram
 A state machine only describes behavior and does not itself, have to be statefull.
 Therefore the behavior can be described using statically allocated nodes as described above.
 This is beneficial for memory management as you don't have to worry about allocating space for the the nodes themselves.
-The actual state of the machine can then be maintained in a seperate structe which is what `SM_Context` is for.
+
+The actual state of the machine can then be maintained in a seperate structure which is what `SM_Context` is for.
 This can be allocated any way that the user sees fit.
 For example if you're entire application only requires one instance of a state machine the context could also be allocated statically.
-
 But if you wan't to be able to have multiple instances you'd want to allocate it on the stack or heap.
-For a good example of running multiple instances of a state machine see [examples/game_of_life.c](./examples/game_of_life.c);
+
+For a good example of running multiple instances of a state machine see [examples/game_of_life.c](./examples/game_of_life.c) where each cell of the grid has its own `SM_Context`.
 
 ## Examples
 
