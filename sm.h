@@ -54,6 +54,9 @@ typedef struct{
   SM_Transition_init((transition), (source_state), (target_state));\
   SM_add_transition((sm), (transition))
 
+void SM_Transition_set_trigger(SM_Transition* self, TriggerCallback trigger);
+void SM_Transition_set_guard(SM_Transition* self, GuardCallback guard);
+void SM_Transition_set_effect(SM_Transition* self, ActionCallback effect);
 bool SM_Transition_has_trigger_or_guard(SM_Transition* self);
 bool SM_Transition_check_guard(SM_Transition* self, void* user_context);
 bool SM_Transition_check_trigger(SM_Transition* self, void* user_context, void* event);
@@ -88,8 +91,6 @@ typedef struct{
   _SM_init(&(sm))
 
 void _SM_init(SM* self);
-bool SM_is_halted(SM* self);
-void SM_transition(SM* self, SM_Transition* transition, SM_Context* context);
 void SM_step(SM* self, SM_Context* context);
 void SM_notify(SM* self, SM_Context* context, void* event);
 void SM_run(SM* self, SM_Context* context);
@@ -183,13 +184,9 @@ void SM_Transition_apply_effect(SM_Transition* self, void* user_context){
 }
 
 void SM_Transition_add_to_chain(SM_Transition* current, SM_Transition* new_transition){
-  //printf("sm add to chain:\n");
   while(current->next_transition != NULL){
-    //printf("link: %p\n",current);
     current = current->next_transition;
   }
-  //printf("link: %p\n",current);
-  //printf("new link: %p\n",new_transition);
   current->next_transition = new_transition;
 }
 
@@ -203,11 +200,9 @@ void SM_State_add_transition(SM_State* self, SM_Transition* new_transition){
 }
 
 void SM_add_transition(SM* self, SM_Transition* transition){
-  //printf("sm add transition: %p, from %p to %p\n", transition, transition->source, transition->target);
   if(transition->source != SM_INITIAL_STATE){
     SM_State_add_transition(transition->source, transition);
   }else{
-    //printf("sm add initial transition: %p\n", transition);
     if(self->initial_transition == NULL){
       self->initial_transition = transition;
     }else{
@@ -271,7 +266,6 @@ void SM_step(SM* self, SM_Context* context){
       transition != NULL; 
       transition = SM_get_next_transition(self, context, transition))
   {
-    //printf("SM check transition: %p guard: %p trigger: %p\n", transition, transition->guard, transition->trigger);
     assert(transition->source == context->current_state && "transition not valid for current state");
     if(!SM_Transition_has_trigger(transition) &&
         SM_Transition_check_guard(transition, context->user_context))
@@ -286,7 +280,6 @@ void SM_step(SM* self, SM_Context* context){
       transition != NULL; 
       transition = SM_get_next_transition(self, context, transition))
   {
-    //printf("SM check transition: %p guard: %p trigger: %p\n", transition, transition->guard, transition->trigger);
     assert(transition->source == context->current_state && "transition not valid for current state");
     if(!SM_Transition_has_trigger_or_guard(transition))
     {
