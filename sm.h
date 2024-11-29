@@ -1,4 +1,3 @@
-#define SM_IMPLEMENTATION
 
 #ifndef SM_H_
 #define SM_H_

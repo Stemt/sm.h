@@ -1,5 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
+
+#define SM_IMPLEMENTATION
 #include "sm.h"
 
 #define SIZE 5
