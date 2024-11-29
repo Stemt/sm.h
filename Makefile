@@ -1,5 +1,5 @@
 
-CFLAGS= -std=c99 -ggdb
+CFLAGS= -std=c99 -ggdb -Wall -Wextra
 LDFLAGS= -I.
 
 all: build

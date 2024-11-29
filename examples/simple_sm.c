@@ -10,6 +10,7 @@ void A_do_action(void* ctx){
 }
 
 void A_exit_action(void* ctx){
+  (void)(ctx);
   printf("exiting state A");
 }
 
@@ -20,6 +21,7 @@ bool A_to_B_guard(void* ctx){
 }
 
 void B_enter_action(void* ctx){
+  (void)(ctx);
   printf("exiting state B\n");
 }
 
@@ -29,6 +31,7 @@ void B_do_action(void* ctx){
 }
 
 bool B_to_final_trigger(void* ctx, void* event){
+  (void)(ctx);
   int* event_value = event;
   printf("B_to_final_trigger: event_value = %d\n", *event_value);
   return *event_value > 10;

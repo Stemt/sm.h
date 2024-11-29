@@ -45,7 +45,7 @@ typedef struct{
 } Lexer;
 
 bool Lexer_is_word(char ch){
-  return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z';
+  return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 }
 
 bool Lexer_is_number(char ch){
@@ -256,6 +256,7 @@ void Lexer_lex(Lexer* self, const char* str){
 }
 
 void print_token(void* ctx, Token* token){
+  (void)(ctx);
   printf("token: %s, '%.*s'\n", TokenType_to_str(token->type), (int)token->len, token->str);
 }
 

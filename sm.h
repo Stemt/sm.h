@@ -190,7 +190,6 @@ void SM_Transition_add_to_chain(SM_Transition* current, SM_Transition* new_trans
 }
 
 void SM_State_add_transition(SM_State* self, SM_Transition* new_transition){
-  //printf("sm state (%p) add transition: %p\n", self, new_transition);
   if(self->transition == NULL){
     self->transition = new_transition;
   }else{
@@ -230,6 +229,7 @@ void _SM_init(SM* self){
 }
 
 void SM_transition(SM* self, SM_Transition* transition, SM_Context* context){
+  (void)(self);
 #ifdef SM_TRACE
   fprintf(stderr,"SM_TRACE: transition triggered: '%s' -> '%s'\n", 
       SM_State_get_trace_name(transition->source),
