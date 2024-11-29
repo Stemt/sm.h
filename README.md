@@ -353,7 +353,7 @@ You'd do the following.
 Which in the state machine graph chains the two transitions together so they can be accessed without the state machine having to allocate memory for an array of transition pointers.
 At the same time the transitions themselves will keep track of their source stat so they can call the exit action during a transition.
 
-```c
+```mermaid
 classDiagram
   class A
   <<SM_State>> A
