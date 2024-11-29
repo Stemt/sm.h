@@ -411,7 +411,9 @@ This example shows how you can use multiple `SM_Context`s to run multiple instan
 
 Implements a rudimentary lexer I have previously used to parse CSV files.
 
+## TODO
 
+- Implement event queue for `SM_notify` as currently events are discarded if not immediately handled
 
 
 
