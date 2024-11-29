@@ -394,6 +394,7 @@ Then to build simply run:
 ```
 make
 ```
+This creates the executables in the `build` directory, which also created if it doesn't yet exist.
 
 ### simple_sm.c
 
