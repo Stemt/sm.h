@@ -167,7 +167,7 @@ States are used to create transitions between two states;
 > [!NOTE]
 > Also note that there are two special states: `SM_INITIAL_STATE` and `SM_FINAL_STATE`.
 > `SM_INITIAL_STATE` is always the first state that a state machine starts with.
-> That also means that the state machine **must** contain a transition from `SM_FINAL_STATE` to another state.
+> That also means that the state machine **must** contain a transition from `SM_INITIAL_STATE` to another state.
 > When a transition is defined and triggered to `SM_FINAL_STATE` the state machine will halt.
 
 There are 3 ways that a transition can be triggered.
