@@ -172,7 +172,7 @@ States are used to create transitions between two states;
 
 There are 3 ways that a transition can be triggered.
 - **guard without trigger**: If a transition has a guard but no trigger, the transition will be triggered as soon as the guard returns `true` during an `SM_step()` call.
-- **trigger**: With a trigger, a transition will only be triggerd if the trigger returns true during an `SM_notify()` call. Though only if it doesn't have a guard or the set guard returns true.
+- **trigger**: With a trigger, a transition will only be triggered if the trigger returns true during an `SM_notify()` call. Though only if it doesn't have a guard or the set guard returns true.
 - **no guard or trigger**: Without a guard or trigger the transition will be triggered during an `SM_step()` call, but only if no other transition **with** a guard can be triggered during that same call.
 
 Aside from the guard and trigger the transition can also have an affect.
