@@ -166,9 +166,9 @@ States are used to create transitions between two states;
 ```
 > [!NOTE]
 > Also note that there are two special states: `SM_INITIAL_STATE` and `SM_FINAL_STATE`.
-> `SM_INITIAL_STATE` is always the first state that a state machine starts with.
+> - `SM_INITIAL_STATE` is always the first state that a state machine starts with.
 > That also means that the state machine **must** contain a transition from `SM_INITIAL_STATE` to another state.
-> When a transition is defined and triggered to `SM_FINAL_STATE` the state machine will halt.
+> - When a transition to `SM_FINAL_STATE` is triggered, the state machine will halt.
 
 There are 3 ways that a transition can be triggered.
 - **guard without trigger**: If a transition has a guard but no trigger, the transition will be triggered as soon as the guard returns `true` during an `SM_step()` call.
