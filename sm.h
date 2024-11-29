@@ -7,12 +7,12 @@
 #include <assert.h>
 #include <stdio.h>
 
-typedef void (*ActionCallback)(void* user_context);
+typedef void (*SM_ActionCallback)(void* user_context);
 
 typedef struct{
-  ActionCallback enter_action;
-  ActionCallback do_action;
-  ActionCallback exit_action;
+  SM_ActionCallback enter_action;
+  SM_ActionCallback do_action;
+  SM_ActionCallback exit_action;
   const char* trace_name;
   void* transition;
   bool init;
@@ -26,20 +26,20 @@ typedef struct{
   SM_State_init(state)
 
 void SM_State_init(SM_State* self);
-void SM_State_set_enter_action(SM_State* self, ActionCallback action);
-void SM_State_set_do_action(SM_State* self, ActionCallback action);
-void SM_State_set_exit_action(SM_State* self, ActionCallback action);
+void SM_State_set_enter_action(SM_State* self, SM_ActionCallback action);
+void SM_State_set_do_action(SM_State* self, SM_ActionCallback action);
+void SM_State_set_exit_action(SM_State* self, SM_ActionCallback action);
 void SM_State_enter(SM_State* self, void* user_context);
 void SM_State_do(SM_State* self, void* user_context);
 void SM_State_exit(SM_State* self, void* user_context);
 
-typedef bool (*GuardCallback)(void* user_context);
-typedef bool (*TriggerCallback)(void* user_context, void* event);
+typedef bool (*SM_GuardCallback)(void* user_context);
+typedef bool (*SM_TriggerCallback)(void* user_context, void* event);
 
 typedef struct{
-  TriggerCallback trigger;
-  GuardCallback guard;
-  ActionCallback effect;  
+  SM_TriggerCallback trigger;
+  SM_GuardCallback guard;
+  SM_ActionCallback effect;  
   SM_State* source;
   SM_State* target;
   void* next_transition;
@@ -53,9 +53,9 @@ typedef struct{
   SM_Transition_init((transition), (source_state), (target_state));\
   SM_add_transition((sm), (transition))
 
-void SM_Transition_set_trigger(SM_Transition* self, TriggerCallback trigger);
-void SM_Transition_set_guard(SM_Transition* self, GuardCallback guard);
-void SM_Transition_set_effect(SM_Transition* self, ActionCallback effect);
+void SM_Transition_set_trigger(SM_Transition* self, SM_TriggerCallback trigger);
+void SM_Transition_set_guard(SM_Transition* self, SM_GuardCallback guard);
+void SM_Transition_set_effect(SM_Transition* self, SM_ActionCallback effect);
 bool SM_Transition_has_trigger_or_guard(SM_Transition* self);
 bool SM_Transition_check_guard(SM_Transition* self, void* user_context);
 bool SM_Transition_check_trigger(SM_Transition* self, void* user_context, void* event);
@@ -112,15 +112,15 @@ const char* SM_State_get_trace_name(SM_State* self){
   return "initial/final";
 }
 
-void SM_State_set_enter_action(SM_State* self, ActionCallback action){
+void SM_State_set_enter_action(SM_State* self, SM_ActionCallback action){
   self->enter_action = action;
 }
 
-void SM_State_set_do_action(SM_State* self, ActionCallback action){
+void SM_State_set_do_action(SM_State* self, SM_ActionCallback action){
   self->do_action = action;
 }
 
-void SM_State_set_exit_action(SM_State* self, ActionCallback action){
+void SM_State_set_exit_action(SM_State* self, SM_ActionCallback action){
   self->exit_action = action;
 }
 
@@ -142,15 +142,15 @@ void SM_Transition_init(SM_Transition* self, SM_State* source, SM_State* target)
   self->init = true;
 }
 
-void SM_Transition_set_trigger(SM_Transition* self, TriggerCallback trigger){
+void SM_Transition_set_trigger(SM_Transition* self, SM_TriggerCallback trigger){
   self->trigger = trigger;
 }
 
-void SM_Transition_set_guard(SM_Transition* self, GuardCallback guard){
+void SM_Transition_set_guard(SM_Transition* self, SM_GuardCallback guard){
   self->guard = guard;
 }
 
-void SM_Transition_set_effect(SM_Transition* self, ActionCallback effect){
+void SM_Transition_set_effect(SM_Transition* self, SM_ActionCallback effect){
   self->effect = effect;
 }
 
