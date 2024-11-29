@@ -299,7 +299,8 @@ void SM_notify(SM* self, SM_Context* context, void* event){
       transition = SM_get_next_transition(self, context, transition))
   {
     assert(transition->source == context->current_state);
-    if(SM_Transition_check_trigger(transition, context->user_context, event))
+    if( (!SM_Transition_has_guard(transition) || SM_Transition_check_guard(transition, context->user_context)) &&
+        SM_Transition_check_trigger(transition, context->user_context, event))
     {
       SM_transition(self, transition, context);
       return;
