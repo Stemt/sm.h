@@ -335,8 +335,8 @@ For example to create the following state machine.
 ```mermaid
 stateDiagram-v2
   [*] --> A
-  A --> B : [ A_to_B_guard() ]
-  A --> C : [ A_to_C_guard() ]
+  A --> B
+  A --> C
 ```
 
 You'd do the following.
@@ -349,10 +349,8 @@ You'd do the following.
     SM_Transition_create(sm, initial_to_A, SM_INITIAL_STATE, A);
 
     SM_Transition_create(sm, A_to_B, A, B);
-    SM_Transition_set_guard(A_to_B, A_to_B_guard);
     
     SM_Transition_create(sm, A_to_C, A, C);
-    SM_Transition_set_guard(A_to_C, A_to_C_guard);
 ```
 
 Which in the state machine graph chains the two transitions together so they can be accessed without the state machine having to allocate memory for an array of transition pointers.
