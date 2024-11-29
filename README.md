@@ -415,6 +415,7 @@ Implements a rudimentary lexer I have previously used to parse CSV files.
 - Implement event queue for `SM_notify` as currently events are discarded if not immediately handled
 - Add unit tests
 - Add better api documentation
+- Allow user to set custom mutex for `SM_Context` to make using the same context across threads safe
 
 
 
