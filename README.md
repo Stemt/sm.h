@@ -321,6 +321,10 @@ classDiagram
   <<SM_Transition>> B_to_final
   B --> B_to_final : first_transition
   B_to_final --> B : source
+  B_to_final --> B_to_final_trigger : trigger
+
+  class B_to_final_trigger
+  <<SM_TriggerCallback>> B_to_final_trigger
 
 ```
 
