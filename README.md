@@ -321,6 +321,10 @@ classDiagram
   <<SM_Transition>> B_to_final
   B --> B_to_final : first_transition
   B_to_final --> B : source
+  B_to_final --> B_to_final_trigger : trigger
+
+  class B_to_final_trigger
+  <<SM_TriggerCallback>> B_to_final_trigger
 
 ```
 
@@ -351,7 +355,7 @@ You'd do the following.
 ```
 
 Which in the state machine graph chains the two transitions together so they can be accessed without the state machine having to allocate memory for an array of transition pointers.
-At the same time the transitions themselves will keep track of their source stat so they can call the exit action during a transition.
+At the same time the transitions themselves will keep track of their source state so they can call the exit action during a transition.
 
 ```mermaid
 classDiagram
