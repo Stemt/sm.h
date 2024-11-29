@@ -1,5 +1,7 @@
 # sm.h
 
+[![Makefile CI](https://github.com/Stemt/sm.h/actions/workflows/makefile.yml/badge.svg?branch=main)](https://github.com/Stemt/sm.h/actions/workflows/makefile.yml)
+
 A single header library for simply creating statically allocated state machines.
 
 ## Usage
