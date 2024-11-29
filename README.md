@@ -250,7 +250,123 @@ For convenience, `SM_run()` can be called to keep calling `SM_step()` automatica
 }
 ```
 
+## How Does it Work?
+
+All structures, except for `SM_Context` are statically allocated when using the `def` and `create` macros and are linked to other structures when passed into the respective macros.
+
+For example when taking the quick example above it can modelled as follows in UML.
+
+```mermaid
+stateDiagram-v2
+  A : A
+  A : do / A_do_action()
+  A : exit / A_exit_action()
+  
+  B : B
+  B : enter / B_enter_action()
+  B : do / B_do_action()
 
 
+  [*] --> A
+  A --> B : [ A_to_B_guard() ]
+  B --> [*] : B_to_final_trigger()
+
+```
+
+At runtime the example produces the following linked graph structure.
+Note that the classses here actuallly represent statically allocated instances and the stereotype represent the actual type of the instance.
+
+```mermaid
+classDiagram
+  class sm
+  <<SM>> sm
+  sm --> initial : initial_transition
+
+  class initial
+  <<SM_Transition>> initial
+  initial --> A : target
+  
+  class A
+  <<SM_State>> A
+
+  class A_do_action
+  <<SM_ActionCallback>> A_do_action
+  A --> A_do_action : do_action
+
+  class A_exit_action
+  <<SM_ActionCallback>> A_exit_action
+  A --> A_exit_action : exit_action
+
+  class A_to_B
+  <<SM_Transition>> A_to_B
+  A --> A_to_B : first_transition
+  A_to_B --> A : source
+  A_to_B --> B : target
+
+  class A_to_B_guard
+  <<SM_GuardCallback>> A_to_B_guard
+  A_to_B --> A_to_B_guard : guard
+  
+  class B
+  <<SM_State>> B
+  B --> B_enter_action : enter_action
+  B --> B_do_action : do_action
+
+  class B_enter_action
+  <<SM_ActionCallback>> B_enter_action
+  class B_do_action
+  <<SM_ActionCallback>> B_do_action
+
+  class B_to_final
+  <<SM_Transition>> B_to_final
+  B --> B_to_final : first_transition
+  B_to_final --> B : source
+
+```
+
+It's also possible to have multiple transitions.
+For example to create the following state machine.
+
+```mermaid
+stateDiagram-v2
+  [*] --> A
+  A --> B : [ A_to_B_guard() ]
+  A --> C : [ A_to_C_guard() ]
+```
+
+You'd do the following.
+
+```c
+    SM_State_create(A);
+    SM_State_create(B);
+    SM_State_create(C);
+
+    SM_Transition_create(sm, initial_to_A, SM_INITIAL_STATE, A);
+
+    SM_Transition_create(sm, A_to_B, A, B);
+    SM_Transition_set_guard(A_to_B, A_to_B_guard);
+    
+    SM_Transition_create(sm, A_to_C, A, C);
+    SM_Transition_set_guard(A_to_C, A_to_C_guard);
+```
+
+Which in the state machine graph chains the two transitions together so they can be accessed without the state machine having to allocate memory for an array of transition pointers.
+At the same time the transitions themselves will keep track of their source stat so they can call the exit action during a transition.
+
+```c
+classDiagram
+  class A
+  <<SM_State>> A
+  A --> A_to_B : first_transition
+
+  class A_to_B
+  <<SM_Transition>> A_to_B
+  A_to_B --> A : source
+  A_to_B --> A_to_C : next_transition
+
+  class A_to_C
+  <<SM_Transition>> A_to_C
+  A_to_C --> A : source
+```
 
 
