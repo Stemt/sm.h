@@ -5,7 +5,14 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#ifdef SM_TRACE
 #include <stdio.h>
+#endif
+
+#ifndef SM_PREFIX
+#define SM_PREFIX SM_
+#endif
 
 typedef void (*SM_ActionCallback)(void* user_context);
 
@@ -19,8 +26,8 @@ typedef struct{
 } SM_State;
 
 #define SM_State_create(state)\
-  static SM_State (_##state) = {0};\
-  SM_State* const (state) = &(_##state);\
+  static SM_State (SM_PREFIX##state) = {0};\
+  SM_State* const (state) = &(SM_PREFIX##state);\
   assert((state)->init == false && "attempted redefinition of state: "#state);\
   SM_State_set_trace_name((state), (#state));\
   SM_State_init(state)
@@ -47,8 +54,8 @@ typedef struct{
 } SM_Transition;
 
 #define SM_Transition_create(sm, transition, source_state, target_state)\
-  static SM_Transition (_##transition) = {0};\
-  SM_Transition* const (transition) = &(_##transition);\
+  static SM_Transition (SM_PREFIX##transition) = {0};\
+  SM_Transition* const (transition) = &(SM_PREFIX##transition);\
   assert((transition)->init == false && "attempted redefinition of transition: "#transition);\
   SM_Transition_init((transition), (source_state), (target_state));\
   SM_add_transition((sm), (transition))
@@ -82,8 +89,8 @@ typedef struct{
 } SM;
 
 #define SM_def(sm)\
-  static SM (_##sm) = {0};\
-  static SM* (sm) = &(_##sm)
+  static SM (SM_PREFIX##sm) = {0};\
+  static SM* (sm) = &(SM_PREFIX##sm)
 
 #define SM_init(sm, ...)\
   assert((sm)->init == false && "attempted redefinition of state machine: "#sm);\
