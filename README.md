@@ -413,7 +413,8 @@ Implements a rudimentary lexer I have previously used to parse CSV files.
 ## TODO
 
 - Implement event queue for `SM_notify` as currently events are discarded if not immediately handled
-
+- Add unit tests
+- Add better api documentation
 
 
 
