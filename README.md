@@ -422,7 +422,6 @@ make test
 ## TODO
 
 - Implement event queue for `SM_notify` as currently events are discarded if not immediately handled
-- Add better api documentation
 - Allow user to set custom mutex for `SM_Context` to make using the same context across threads safe
 
 

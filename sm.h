@@ -25,6 +25,10 @@ typedef struct{
   bool init;
 } SM_State;
 
+/**
+ * \brief         The SM_State_create macro is used to define and init a new state
+ * \param state:  name of the new state to be created
+ */
 #define SM_State_create(state)\
   static SM_State (SM_PREFIX##state) = {0};\
   SM_State* const (state) = &(SM_PREFIX##state);\
@@ -32,13 +36,35 @@ typedef struct{
   SM_State_set_trace_name((state), (#state));\
   SM_State_init(state)
 
+/**
+ * \brief         initializes given state
+ * \param self:   state handle
+ */
 void SM_State_init(SM_State* self);
+
+/**
+ * \brief           sets the enter_action callback 
+ * \note            enter_aciton is called upon state entry right after a transition
+ * \param self:     state handle
+ * \param action:   action callback
+ */
 void SM_State_set_enter_action(SM_State* self, SM_ActionCallback action);
+
+/**
+ * \brief             sets the do_action callback 
+ * \note              do_action is called if the state is active and no transition occurs during an SM_step() call
+ * \param self:       state handle
+ * \param do_action:  action callback
+ */
 void SM_State_set_do_action(SM_State* self, SM_ActionCallback action);
+
+/**
+ * \brief                 sets the exit_action callback 
+ * \note                  exit_aciton is called right before a transition occurs
+ * \param self:           state handle
+ * \param enter_action:   action callback
+ */
 void SM_State_set_exit_action(SM_State* self, SM_ActionCallback action);
-void SM_State_enter(SM_State* self, void* user_context);
-void SM_State_do(SM_State* self, void* user_context);
-void SM_State_exit(SM_State* self, void* user_context);
 
 typedef bool (*SM_GuardCallback)(void* user_context);
 typedef bool (*SM_TriggerCallback)(void* user_context, void* event);
@@ -53,6 +79,13 @@ typedef struct{
   bool init;
 } SM_Transition;
 
+/**
+ * \brief                 defines, initializes a new transition and adds it to the given statemachine 
+ * \param sm:             a state machine handle
+ * \param transition:     name of the transition to be defined
+ * \param source_state:   state to transition from
+ * \param target_state:   state to transition to
+ */
 #define SM_Transition_create(sm, transition, source_state, target_state)\
   static SM_Transition (SM_PREFIX##transition) = {0};\
   SM_Transition* const (transition) = &(SM_PREFIX##transition);\
@@ -60,13 +93,37 @@ typedef struct{
   SM_Transition_init((transition), (source_state), (target_state));\
   SM_add_transition((sm), (transition))
 
+/**
+ * \brief               initializes a transition to the given statemachine 
+ * \param self:         transition handle
+ * \param source_state: state to transition from
+ * \param target_state: state to transition to
+ */
+void SM_Transition_init(SM_Transition* self, SM_State* source_state, SM_State* target_state);
+
+/**
+ * \brief           sets the trigger callback
+ * \note            trigger is called during a SM_notify() call when the source state is active and a guard is not set or the guard returns true.
+ * \param self:     transition handle
+ * \param trigger:  trigger callback
+ */
 void SM_Transition_set_trigger(SM_Transition* self, SM_TriggerCallback trigger);
+
+/**
+ * \brief         sets the guard callback
+ * \note          a guard is called during either a SM_notify() or SM_step()
+ * \param self:   transition handle
+ * \param guard:  guard callback
+ */
 void SM_Transition_set_guard(SM_Transition* self, SM_GuardCallback guard);
+
+/**
+ * \brief           sets the effect callback
+ * \note            an effect is called in the middle of a state transition
+ * \param self:     transition handle
+ * \param effect:   effect action callback
+ */
 void SM_Transition_set_effect(SM_Transition* self, SM_ActionCallback effect);
-bool SM_Transition_has_trigger_or_guard(SM_Transition* self);
-bool SM_Transition_check_guard(SM_Transition* self, void* user_context);
-bool SM_Transition_check_trigger(SM_Transition* self, void* user_context, void* event);
-void SM_Transition_apply_effect(SM_Transition* self, void* user_context);
 
 typedef struct{
   void* user_context;
@@ -74,8 +131,23 @@ typedef struct{
   bool halted;
 } SM_Context;
 
+/**
+ * \brief                 initializes the given context
+ * \param self:           context handle
+ * \param user_context:   custom pointer which will be passed to any action, guard and trigger callbacks when those are called
+ */
 void SM_Context_init(SM_Context* self, void* user_context);
+
+/**
+ * \brief         reinitializes the context but keeps the user_context
+ * \param self:   context handle
+ */
 void SM_Context_reset(SM_Context* self);
+
+/**
+ * \brief         checks if the current state machine context is halted
+ * \param self:   context handle
+ */
 bool SM_Context_is_halted(SM_Context* self);
 
 #define SM_INITIAL_STATE NULL
@@ -88,17 +160,42 @@ typedef struct{
   bool init;
 } SM;
 
+/**
+ * \brief       defines a new state machine
+ * \note        can be defined in global and local scope
+ * \param sm:   new statemachine name
+ */
 #define SM_def(sm)\
   static SM (SM_PREFIX##sm) = {0};\
   static SM* (sm) = &(SM_PREFIX##sm)
 
-#define SM_init(sm, ...)\
-  assert((sm)->init == false && "attempted redefinition of state machine: "#sm);\
-  _SM_init(&(sm))
+/**
+ * \brief               adds the given transition to the state machine linked graph structure
+ * \param self:         state machine handle
+ * \param transition:   transition handle
+ */
+void SM_add_transition(SM* self, SM_Transition* transition);
 
-void _SM_init(SM* self);
+/**
+ * \brief           performs one transition if possible or executes the do_action of the current state
+ * \param self:     state machine handle
+ * \param context:  context handle
+ */
 void SM_step(SM* self, SM_Context* context);
+
+/**
+ * \brief notifies triggers of transitions from the current state of the given event
+ * \param self: state machine handle
+ * \param context: context handle
+ * \param event: pointer to custom event type that is passed to the triggers that are checked during this call
+ */
 void SM_notify(SM* self, SM_Context* context, void* event);
+
+/**
+ * \brief           runs SM_step() continuously until SM_Context_is_halted() returns false
+ * \param self:     state machine handle
+ * \param context:  context handle
+ */
 void SM_run(SM* self, SM_Context* context);
 
 #ifdef SM_IMPLEMENTATION
@@ -204,18 +301,6 @@ void SM_State_add_transition(SM_State* self, SM_Transition* new_transition){
   }
 }
 
-void SM_add_transition(SM* self, SM_Transition* transition){
-  if(transition->source != SM_INITIAL_STATE){
-    SM_State_add_transition(transition->source, transition);
-  }else{
-    if(self->initial_transition == NULL){
-      self->initial_transition = transition;
-    }else{
-      SM_Transition_add_to_chain(self->initial_transition, transition);
-    }
-  }
-}
-
 void SM_Context_init(SM_Context* self, void* user_context){
   self->user_context = user_context;
   self->current_state = SM_INITIAL_STATE;
@@ -251,8 +336,21 @@ void SM_transition(SM* self, SM_Transition* transition, SM_Context* context){
   }
 }
 
+void SM_add_transition(SM* self, SM_Transition* transition){
+  if(transition->source != SM_INITIAL_STATE){
+    SM_State_add_transition(transition->source, transition);
+  }else{
+    if(self->initial_transition == NULL){
+      self->initial_transition = transition;
+    }else{
+      SM_Transition_add_to_chain(self->initial_transition, transition);
+    }
+  }
+}
+
+
 SM_Transition* SM_get_next_transition(SM* self, SM_Context* context, SM_Transition* transition){
-  if(!transition){
+  if(transition == NULL){
     if(context->current_state == SM_INITIAL_STATE){
       return self->initial_transition;
     }else{
