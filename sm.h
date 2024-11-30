@@ -3,15 +3,27 @@
 #define SM_H_
 
 #include <stdbool.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <stddef.h>
 
+// define for tracing transitions using SM_TRACE_LOG_FMT
 #ifdef SM_TRACE
+
+// SM_TRACE_LOG_FMT can be defined by the user
+#ifndef SM_TRACE_LOG_FMT
 #include <stdio.h>
+#define SM_TRACE_LOG_FMT(fmt,...) fprintf(stderr, "SM_TRACE: " fmt, __VA_ARGS__)
+#endif
 #endif
 
+// SM_PREFIX can be defined by the user
 #ifndef SM_PREFIX
 #define SM_PREFIX SM_
+#endif
+
+// SM_ASSERT can be defined by the user
+#ifndef SM_ASSERT
+#include <assert.h>
+#define SM_ASSERT(statement) assert(statement)
 #endif
 
 typedef void (*SM_ActionCallback)(void* user_context);
@@ -32,7 +44,7 @@ typedef struct{
 #define SM_State_create(state)\
   static SM_State (SM_PREFIX##state) = {0};\
   SM_State* const (state) = &(SM_PREFIX##state);\
-  assert((state)->init == false && "attempted redefinition of state: "#state);\
+  SM_ASSERT((state)->init == false && "attempted redefinition of state: "#state);\
   SM_State_set_trace_name((state), (#state));\
   SM_State_init(state)
 
@@ -89,7 +101,7 @@ typedef struct{
 #define SM_Transition_create(sm, transition, source_state, target_state)\
   static SM_Transition (SM_PREFIX##transition) = {0};\
   SM_Transition* const (transition) = &(SM_PREFIX##transition);\
-  assert((transition)->init == false && "attempted redefinition of transition: "#transition);\
+  SM_ASSERT((transition)->init == false && "attempted redefinition of transition: "#transition);\
   SM_Transition_init((transition), (source_state), (target_state));\
   SM_add_transition((sm), (transition))
 
@@ -323,7 +335,7 @@ void _SM_init(SM* self){
 void SM_transition(SM* self, SM_Transition* transition, SM_Context* context){
   (void)(self);
 #ifdef SM_TRACE
-  fprintf(stderr,"SM_TRACE: transition triggered: '%s' -> '%s'\n", 
+  SM_TRACE_LOG_FMT("transition triggered: '%s' -> '%s'\n", 
       SM_State_get_trace_name(transition->source),
       SM_State_get_trace_name(transition->target));
 #endif
@@ -362,7 +374,7 @@ SM_Transition* SM_get_next_transition(SM* self, SM_Context* context, SM_Transiti
 }
 
 void SM_step(SM* self, SM_Context* context){
-  assert(self->initial_transition && "atleast one transition from SM_INITIAL_STATE must be created");
+  SM_ASSERT(self->initial_transition && "atleast one transition from SM_INITIAL_STATE must be created");
   if(context->halted) return;
   
   // check all guards without triggers first
@@ -370,7 +382,7 @@ void SM_step(SM* self, SM_Context* context){
       transition != NULL; 
       transition = SM_get_next_transition(self, context, transition))
   {
-    assert(transition->source == context->current_state && "transition not valid for current state");
+    SM_ASSERT(transition->source == context->current_state && "transition not valid for current state");
     if(!SM_Transition_has_trigger(transition) &&
         SM_Transition_check_guard(transition, context->user_context))
     {
@@ -384,7 +396,7 @@ void SM_step(SM* self, SM_Context* context){
       transition != NULL; 
       transition = SM_get_next_transition(self, context, transition))
   {
-    assert(transition->source == context->current_state && "transition not valid for current state");
+    SM_ASSERT(transition->source == context->current_state && "transition not valid for current state");
     if(!SM_Transition_has_trigger_or_guard(transition))
     {
       SM_transition(self, transition, context);
@@ -403,7 +415,7 @@ void SM_notify(SM* self, SM_Context* context, void* event){
       transition != NULL; 
       transition = SM_get_next_transition(self, context, transition))
   {
-    assert(transition->source == context->current_state);
+    SM_ASSERT(transition->source == context->current_state);
     if( (!SM_Transition_has_guard(transition) || SM_Transition_check_guard(transition, context->user_context)) &&
         SM_Transition_check_trigger(transition, context->user_context, event))
     {
