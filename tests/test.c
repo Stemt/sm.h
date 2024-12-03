@@ -28,9 +28,33 @@ UTEST(SM_Transitions, initial_to_other){
   SM_Context_init(&context, NULL);
   
   // a lone transition from a state without guard or trigger will always fire during SM_step()
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context));
 
   ASSERT_EQ(context.current_state, A);
+}
+
+UTEST(SM_Transitions, initial_to_other_to_final){
+  SM_def(sm);
+
+  SM_State_create(A);
+  
+  SM_Transition_create(sm, initial_to_A, SM_INITIAL_STATE, A);
+  SM_Transition_create(sm, A_to_final, A, SM_FINAL_STATE);
+
+  SM_Context context;
+  SM_Context_init(&context, NULL);
+  
+  // to A
+  ASSERT_TRUE(SM_step(sm, &context));
+  ASSERT_EQ(context.current_state, A);
+  
+  // to final
+  ASSERT_TRUE(SM_step(sm, &context));
+  ASSERT_EQ(context.current_state, SM_FINAL_STATE);
+
+  // machine after transition to final sm should be halted and SM_step() should return false
+  ASSERT_FALSE(SM_step(sm, &context));
+  ASSERT_EQ(context.current_state, SM_FINAL_STATE);
 }
 
 bool TEST_SM_Transitions_guard(void* ctx){
@@ -53,12 +77,12 @@ UTEST(SM_Transitions, initial_to_other_with_guard){
   SM_Context_init(&context, &test_context);
 
   // guard return false due to context so no transition is triggered
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context)); // true because the state machine is not halted
   ASSERT_EQ(context.current_state, SM_INITIAL_STATE);
 
   // once guard does return true transition will trigger and the current state changes
   test_context = true;
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context));
   ASSERT_EQ(context.current_state, A);
 }
 
@@ -84,12 +108,12 @@ UTEST(SM_Transitions, initial_to_other_with_trigger){
   
   // trigger is called but returns false due to event meaning no transition occurs
   bool test_event = false;
-  SM_notify(sm, &context, &test_event);
+  ASSERT_FALSE(SM_notify(sm, &context, &test_event));
   ASSERT_EQ(context.current_state, SM_INITIAL_STATE);
 
   // trigger is called and returns true causing the transition to happen
   test_event = true;
-  SM_notify(sm, &context, &test_event);
+  ASSERT_TRUE(SM_notify(sm, &context, &test_event));
   ASSERT_EQ(context.current_state, A);
 }
 
@@ -112,18 +136,18 @@ UTEST(SM_Transitions, initial_to_other_with_guard_and_trigger){
   
   // transition does not occur because trigger returned false due to event
   bool test_event = false;
-  SM_notify(sm, &context, &test_event);
+  ASSERT_FALSE(SM_notify(sm, &context, &test_event)); // event did not trigger transition
   ASSERT_EQ(context.current_state, SM_INITIAL_STATE);
 
   // transition does not occur because guard returned false even though the trigger returned true
   test_context = false;
   test_event = true;
-  SM_notify(sm, &context, &test_event);
+  ASSERT_FALSE(SM_notify(sm, &context, &test_event)); // guard prevented transition
   ASSERT_EQ(context.current_state, SM_INITIAL_STATE);
 
   // transition occurs because guard and trigger return true
   test_context = true;
-  SM_notify(sm, &context, &test_event);
+  ASSERT_TRUE(SM_notify(sm, &context, &test_event));
   ASSERT_EQ(context.current_state, A);
 }
 
@@ -207,7 +231,7 @@ UTEST(SM_States, state_enter){
   
   // enter is called during the first transition (initial_to_A)
   ASSERT_FALSE(test_context);
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context));
   ASSERT_TRUE(test_context);
 }
 
@@ -231,9 +255,9 @@ UTEST(SM_States, state_exit){
 
   // exit is called on the second transition (A_to_final)
   ASSERT_FALSE(test_context);
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context));
   ASSERT_FALSE(test_context);
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context));
   ASSERT_TRUE(test_context);
 }
 
@@ -257,9 +281,9 @@ UTEST(SM_States, state_skip_do){
 
   // do is not called as a transition occurs in both steps
   ASSERT_FALSE(test_context);
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context));
   ASSERT_FALSE(test_context);
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context));
   ASSERT_FALSE(test_context);
   ASSERT_EQ(context.current_state, SM_FINAL_STATE);
 }
@@ -280,12 +304,13 @@ UTEST(SM_States, state_do){
 
   // do is called as the A_to_final is blocked by the guard 
   ASSERT_FALSE(test_context);
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context));
   ASSERT_FALSE(test_context);
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context));
   ASSERT_TRUE(test_context);
-  SM_step(sm, &context);
+  ASSERT_TRUE(SM_step(sm, &context));
   ASSERT_EQ(context.current_state, SM_FINAL_STATE);
+  ASSERT_FALSE(SM_step(sm, &context));
 }
 
 UTEST_MAIN();

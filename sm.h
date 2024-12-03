@@ -215,16 +215,18 @@ void SM_add_transition(SM* self, SM_Transition* transition);
  * \brief           performs one transition if possible or executes the do_action of the current state
  * \param self:     state machine handle
  * \param context:  context handle
+ * \return          true if one do_action or transition was performed otherwise false (happens if context is halted or mutex was set and couldn't be acquired)
  */
-void SM_step(SM* self, SM_Context* context);
+bool SM_step(SM* self, SM_Context* context);
 
 /**
- * \brief notifies triggers of transitions from the current state of the given event
- * \param self: state machine handle
- * \param context: context handle
- * \param event: pointer to custom event type that is passed to the triggers that are checked during this call
+ * \brief           notifies triggers of transitions from the current state of the given event
+ * \param self:     state machine handle
+ * \param context:  context handle
+ * \param event:    pointer to custom event type that is passed to the triggers that are checked during this call
+ * \return          true if the event has been handled, otherwise false. 
  */
-void SM_notify(SM* self, SM_Context* context, void* event);
+bool SM_notify(SM* self, SM_Context* context, void* event);
 
 /**
  * \brief           runs SM_step() continuously until SM_Context_is_halted() returns false
@@ -396,9 +398,9 @@ SM_Transition* SM_get_next_transition(SM* self, SM_Context* context, SM_Transiti
   }
 }
 
-void SM_step(SM* self, SM_Context* context){
+bool SM_step(SM* self, SM_Context* context){
   SM_ASSERT(self->initial_transition && "atleast one transition from SM_INITIAL_STATE must be created");
-  if(context->halted) return;
+  if(context->halted) return false;
   
   // check all guards without triggers first
   for(SM_Transition* transition = SM_get_next_transition(self, context, NULL); 
@@ -410,7 +412,7 @@ void SM_step(SM* self, SM_Context* context){
         SM_Transition_check_guard(transition, context->user_context))
     {
       SM_transition(self, transition, context);
-      return;
+      return true;
     }
   }
 
@@ -423,17 +425,17 @@ void SM_step(SM* self, SM_Context* context){
     if(!SM_Transition_has_trigger_or_guard(transition))
     {
       SM_transition(self, transition, context);
-      return;
+      return true;
     }
   }
 
   SM_State_do(context->current_state, context->user_context);
+  return true;
 }
 
-// TODO add event to an eventqueue so events dont expire if not handled
-void SM_notify(SM* self, SM_Context* context, void* event){
-  if(context->halted) return;
-
+bool SM_notify(SM* self, SM_Context* context, void* event){
+  if(context->halted) return false;
+  
   for(SM_Transition* transition = SM_get_next_transition(self, context, NULL); 
       transition != NULL; 
       transition = SM_get_next_transition(self, context, transition))
@@ -443,9 +445,10 @@ void SM_notify(SM* self, SM_Context* context, void* event){
         SM_Transition_check_trigger(transition, context->user_context, event))
     {
       SM_transition(self, transition, context);
-      return;
+      return true;
     }
   }
+  return false;
 }
 
 void SM_run(SM* self, SM_Context* context){
