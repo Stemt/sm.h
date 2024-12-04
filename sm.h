@@ -160,8 +160,14 @@ void SM_Transition_set_guard(SM_Transition* self, SM_GuardCallback guard);
  */
 void SM_Transition_set_effect(SM_Transition* self, SM_ActionCallback effect);
 
+typedef bool (*SM_MutexTryLockCallback)(void* mutex);
+typedef void (*SM_MutexUnlockCallback)(void* mutex);
+
 typedef struct{
   void* user_context;
+  void* mutex;
+  SM_MutexTryLockCallback mutex_try_lock_callback;
+  SM_MutexUnlockCallback mutex_unlock_callback;
   SM_State* current_state;
   bool halted;
 } SM_Context;
@@ -172,6 +178,35 @@ typedef struct{
  * \param user_context:   custom pointer which will be passed to any action, guard and trigger callbacks when those are called
  */
 void SM_Context_init(SM_Context* self, void* user_context);
+
+/**
+ * \brief                     allows the statemachine to operate safely over different threads, not nessecary for single-threaded applications
+ * \param self:               context handle
+ * \param mutex:              mutex handle
+ * \param try_lock_callback:  callback that attempts to lock the given mutex and returns false in case of failure
+ * \param unlock_callback:    callback that unlocks the given mutex
+ */
+void SM_Context_set_mutex(SM_Context* self, void* mutex, SM_MutexTryLockCallback try_lock_callback, SM_MutexUnlockCallback unlock_callback); 
+
+/**
+ * \brief         checks if the SM_Context mutex is set
+ * \param self:   context handle
+ * \return        true if the context mutex has been set, otherwise false
+ */
+bool SM_Context_mutex_is_set(SM_Context* self);
+
+/**
+ * \brief         attempts to lock the context mutex
+ * \param self:   context handle
+ * \return        true if the context mutex lock has been acquired, otherwise false
+ */
+bool SM_Context_mutex_try_lock(SM_Context* self);
+
+/**
+ * \brief         unlocks the context mutex
+ * \param self:   context handle
+ */
+void SM_Context_mutex_unlock(SM_Context* self);
 
 /**
  * \brief         reinitializes the context but keeps the user_context
@@ -185,11 +220,11 @@ void SM_Context_reset(SM_Context* self);
  */
 bool SM_Context_is_halted(SM_Context* self);
 
+// special states are both NULL but are semantically different
 #define SM_INITIAL_STATE NULL
 #define SM_FINAL_STATE NULL
 
 typedef struct{
-  size_t transition_count;
   SM_Transition** transitions;
   SM_Transition* initial_transition;
   bool init;
@@ -344,6 +379,30 @@ void SM_Context_init(SM_Context* self, void* user_context){
   self->halted = false;
 }
 
+void SM_Context_set_mutex(
+    SM_Context* self, void* mutex, 
+    SM_MutexTryLockCallback try_lock_callback, 
+    SM_MutexUnlockCallback unlock_callback)
+{
+  self->mutex = mutex;
+  self->mutex_try_lock_callback = try_lock_callback;
+  self->mutex_unlock_callback = unlock_callback;
+}
+
+bool SM_Context_mutex_is_set(SM_Context* self){
+  return self->mutex != NULL;
+}
+
+bool SM_Context_mutex_try_lock(SM_Context* self){
+  SM_ASSERT(SM_Context_mutex_is_set(self) && "mutex must be set to lock it");
+  return self->mutex_try_lock_callback(self->mutex);
+}
+
+void SM_Context_mutex_unlock(SM_Context* self){
+  SM_ASSERT(SM_Context_mutex_is_set(self) && "mutex must be set to unlock it");
+  self->mutex_unlock_callback(self->mutex);
+}
+
 void SM_Context_reset(SM_Context* self){
   self->current_state = SM_INITIAL_STATE;
   self->halted = false;
@@ -400,7 +459,8 @@ SM_Transition* SM_get_next_transition(SM* self, SM_Context* context, SM_Transiti
 
 bool SM_step(SM* self, SM_Context* context){
   SM_ASSERT(self->initial_transition && "atleast one transition from SM_INITIAL_STATE must be created");
-  if(context->halted) return false;
+  if(SM_Context_is_halted(context)) return false;
+  if(SM_Context_mutex_is_set(context) && !SM_Context_mutex_try_lock(context)) return false;
   
   // check all guards without triggers first
   for(SM_Transition* transition = SM_get_next_transition(self, context, NULL); 
@@ -412,6 +472,7 @@ bool SM_step(SM* self, SM_Context* context){
         SM_Transition_check_guard(transition, context->user_context))
     {
       SM_transition(self, transition, context);
+      if(SM_Context_mutex_is_set(context)) SM_Context_mutex_unlock(context);
       return true;
     }
   }
@@ -425,16 +486,19 @@ bool SM_step(SM* self, SM_Context* context){
     if(!SM_Transition_has_trigger_or_guard(transition))
     {
       SM_transition(self, transition, context);
+      if(SM_Context_mutex_is_set(context)) SM_Context_mutex_unlock(context);
       return true;
     }
   }
 
   SM_State_do(context->current_state, context->user_context);
+  if(SM_Context_mutex_is_set(context)) SM_Context_mutex_unlock(context);
   return true;
 }
 
 bool SM_notify(SM* self, SM_Context* context, void* event){
-  if(context->halted) return false;
+  if(SM_Context_is_halted(context)) return false;
+  if(SM_Context_mutex_is_set(context) && !SM_Context_mutex_try_lock(context)) return false;
   
   for(SM_Transition* transition = SM_get_next_transition(self, context, NULL); 
       transition != NULL; 
@@ -445,9 +509,11 @@ bool SM_notify(SM* self, SM_Context* context, void* event){
         SM_Transition_check_trigger(transition, context->user_context, event))
     {
       SM_transition(self, transition, context);
+      if(SM_Context_mutex_is_set(context)) SM_Context_mutex_unlock(context);
       return true;
     }
   }
+  if(SM_Context_mutex_is_set(context)) SM_Context_mutex_unlock(context);
   return false;
 }
 
